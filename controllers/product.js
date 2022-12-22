@@ -16,15 +16,34 @@ exports.add=AsyncCatch(async(req,res)=>{
 })
 
 exports.getAllProduct=AsyncCatch(async(req,res)=>{
-    const productDetails=await ProductModel.find({featured:true,name:'radhika'}).select('-__v');
-
-
-    res.status(200).json({productDetails,nbHits:productDetails.length});
+  const page=parseInt(req.query.page)||1;
+  const limit=parseInt(req.query.limit)||5;
+  const skip=(page-1)*limit;
+  //const fieldList=(req.query.fields).split(',').join('  ');
+  const results=results.skip(skip).limit(page);
+   // const productDetails=await ProductModel.find({}).select('-__v').limit(5).sort('name').skip(5);
+     let productDetails=await ProductModel.find(results);
+    // console.log(productDetails);
+    res.status(200).json({resultData:productDetails,nbHits:productDetails.length});
+  
 })
 
 exports.Product=AsyncCatch(async(req,res)=>{
-    console.log(req.query);
-    const products=await ProductModel.find(req.query).select('-__v');
-    console.log(products);
+    const {featured,name}=req.query;
+    const queryObject={};
+    if(featured){
+      queryObject.featured=featured==='true'?true:false
+    }
+    if(name){
+      queryObject.name={$regex:name,$options:'i'};
+
+    }
+    const page=Number(req.query.page)||1;
+    const limit=Number(req.query.limit)||5;
+    const skip=(page-1)*limit;
+    const products=await ProductModel.find(queryObject).skip(skip).limit(limit);
+  
+  
+    //console.log(products);
     res.status(200).json({products,nbHits:products.length});
 })
